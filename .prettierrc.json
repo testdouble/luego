@@ -1,0 +1,7 @@
+{
+  "alignTernaryLines": false,
+  "spaceBeforeFunctionParen": false,
+  "trailingComma": "all",
+  "singleQuote": true,
+  "semi": false
+}
