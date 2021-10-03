@@ -1,8 +1,8 @@
 import { deepEqual as assertDeepEqual } from 'assert'
 import { Suite } from 'benchmark'
-import { keep, fromArray, map, pipe, take, toArray } from './src'
+import { keep, fromArray, map, pipe, take, toArray } from '../src'
 
-function runArraySuite(name, length) {
+function runArrayPerfSuite(name, length) {
   const double = (n) => n * 2
   const toString = (n) => n.toString()
   const gt20 = (n) => n > 20
@@ -53,9 +53,9 @@ function runArraySuite(name, length) {
 
 async function main() {
   const results = await Promise.all([
-    runArraySuite('small array', 100),
-    runArraySuite('medium array', 1000),
-    runArraySuite('large array', 10000),
+    runArrayPerfSuite('small array', 100),
+    runArrayPerfSuite('medium array', 1000),
+    runArrayPerfSuite('large array', 10000),
   ])
 
   const formattedResults = results

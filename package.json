@@ -4,8 +4,9 @@
   "description": "Functional lazy stream programming helpers",
   "main": "index.js",
   "scripts": {
-    "benchmark": "npm run build:benchmark && node build/benchmark.js",
-    "build:benchmark": "esbuild benchmark.js --bundle --platform=node --outfile=build/benchmark.js",
+    "benchmark:memory": "npm run build:benchmark && node build/benchmark.js memory",
+    "benchmark:runtime": "npm run build:benchmark && node build/benchmark.js runtime",
+    "build:benchmark": "esbuild benchmark/index.js --bundle --platform=node --outfile=build/benchmark.js",
     "test": "jest"
   },
   "repository": {
