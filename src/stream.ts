@@ -229,3 +229,43 @@ class Empty<T> implements Result<T> {
 }
 
 export const empty = new Empty()
+
+export class AsyncResult<T> implements Result<T> {
+  promise: Promise<Result<T>>
+
+  constructor(promise: Promise<T>, next: Stream<T>) {
+    this.promise = promise.then((value: T) => new ResultValue(value, next))
+  }
+
+  map<U>(f: MapF<T, U>): AsyncResult<U> {
+    return new AsyncResult(this.promise.then((result) => result.map(f)))
+  }
+
+  keep(f: PredicateF<T>): AsyncResult<T> {
+    return new AsyncResult(this.promise.then((result) => result.keep(f)))
+  }
+
+  reject(f: PredicateF<T>): AsyncResult<T> {
+    return new AsyncResult(this.promise.then((result) => result.reject(f)))
+  }
+
+  take(n: number): Result<T> {
+    return n <= 0
+      ? empty
+      : new AsyncResult(this.promise.then((result) => result.take(n)))
+  }
+
+  // takeWhile(f: PredicateF<T>): Result<T> {
+  //   return f(this.value)
+  //     ? new ResultValue(this.value, this.next.takeWhile(f))
+  //     : empty
+  // }
+
+  // takeUntil(f: PredicateF<T>): Result<T> {
+  //   return this.takeWhile(not(f))
+  // }
+
+  // isEmpty(): boolean {
+  //   return false
+  // }
+}

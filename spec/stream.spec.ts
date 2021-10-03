@@ -8,6 +8,7 @@ import {
   pipe,
   reject,
   sequence,
+  subscribe,
   take,
   takeUntil,
   takeWhile,
@@ -23,6 +24,8 @@ const lt = (x: number) => (y: number) => y < x
 const toString = (x: number) => x.toString()
 
 const numbersStream = sequence(1, increment)
+
+const sleep = time => new Promise((resolve) => setTimeout(resolve, time))
 
 describe('Stream', () => {
   describe('.sequence', () => {
@@ -197,6 +200,41 @@ describe('Stream', () => {
       expect(f).toHaveBeenNthCalledWith(4, '4')
       expect(f).toHaveBeenNthCalledWith(5, '5')
     })
+  })
+
+  describe('.subscribe', () => {
+    it('triggers callback for sync sources', () => {
+      const f = jest.fn()
+      const stream = pipe(map(toString), take(5))(numbersStream)
+
+      subscribe(f, stream)
+
+      expect(f).toHaveBeenCalledTimes(5)
+      expect(f).toHaveBeenNthCalledWith(1, '1')
+      expect(f).toHaveBeenNthCalledWith(2, '2')
+      expect(f).toHaveBeenNthCalledWith(3, '3')
+      expect(f).toHaveBeenNthCalledWith(4, '4')
+      expect(f).toHaveBeenNthCalledWith(5, '5')
+    })
+
+    // it.only('triggers callback for async sources', async () => {
+    //   const f = jest.fn()
+    //   // TODO: naming
+    //   const stream = observable(async subscriber => {
+    //     subscriber.next('foo')
+    //     await sleep(1)
+    //     subscriber.next('bar')
+    //     await sleep(1)
+    //     subscriber.next('baz')
+    //   })
+
+    //   subscribe(f, stream)
+
+    //   expect(f).toHaveBeenCalledTimes(3)
+    //   expect(f).toHaveBeenNthCalledWith(1, 'foo')
+    //   expect(f).toHaveBeenNthCalledWith(2, 'bar')
+    //   expect(f).toHaveBeenNthCalledWith(3, 'baz')
+    // })
   })
 
   describe('stacking operations', () => {

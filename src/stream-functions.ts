@@ -39,6 +39,12 @@ export const fromArray = <T>(array: T[]): Stream<T> => {
   return fromArrayHelper(0)
 }
 
+export const fromPromise = <T>(promise: Promise<T>): Stream<T> => {
+  return new Stream(() => {
+
+  })
+}
+
 // Operations
 // ==========
 
@@ -107,3 +113,9 @@ export const unsafeToArray = <T>(
   stream: Stream<T>,
   maxLoopsWithoutValue: number = DEFAULT_MAX_LOOPS_WITHOUT_VALUE,
 ): T[] => stream.unsafeToArray(maxLoopsWithoutValue)
+
+export const subscribe = <T>(
+  f: EffectF<T>,
+  stream: Stream<T>,
+  maxLoopsWithoutValue: number = DEFAULT_MAX_LOOPS_WITHOUT_VALUE,
+): void => stream.each(f, maxLoopsWithoutValue)

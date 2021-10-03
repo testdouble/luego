@@ -18,4 +18,5 @@ export {
   unsafeEach,
   toArray,
   unsafeToArray,
+  subscribe,
 } from './stream-functions'
