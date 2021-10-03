@@ -1,5 +1,7 @@
 import {
+  UnsafeError,
   UnsafeNumberError,
+  each,
   fromArray,
   keep,
   map,
@@ -10,6 +12,7 @@ import {
   takeUntil,
   takeWhile,
   toArray,
+  unsafeEach,
   unsafeToArray,
 } from '../src'
 
@@ -115,6 +118,84 @@ describe('Stream', () => {
           take(number, numbersStream)
         }).not.toThrowError()
       }
+    })
+  })
+
+  describe('.toArray', () => {
+    it('throws an error with an unsafe stream', () => {
+      expect(numbersStream.isSafe).toBe(false)
+      expect(() => {
+        toArray(numbersStream)
+      }).toThrowError(UnsafeError)
+    })
+  })
+
+  describe('.unsafeToArray', () => {
+    it('does not throw an error with an unsafe stream', () => {
+      const stream = pipe(map(toString), takeWhile(lt(6)))(numbersStream)
+
+      expect(stream.isSafe).toBe(false)
+      expect(() => {
+        unsafeToArray(stream)
+      }).not.toThrowError()
+    })
+  })
+
+  describe('.each', () => {
+    it('is called for every final value', () => {
+      const f = jest.fn()
+      const stream = pipe(map(toString), take(5))(numbersStream)
+
+      each(f, stream)
+
+      expect(f).toHaveBeenCalledTimes(5)
+      expect(f).toHaveBeenNthCalledWith(1, '1')
+      expect(f).toHaveBeenNthCalledWith(2, '2')
+      expect(f).toHaveBeenNthCalledWith(3, '3')
+      expect(f).toHaveBeenNthCalledWith(4, '4')
+      expect(f).toHaveBeenNthCalledWith(5, '5')
+    })
+
+    it('throws an error with an unsafe stream', () => {
+      const f = jest.fn()
+
+      expect(numbersStream.isSafe).toBe(false)
+      expect(() => {
+        each(f, numbersStream)
+      }).toThrowError(UnsafeError)
+      expect(f).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('.unsafeEach', () => {
+    it('is called for every final value', () => {
+      const f = jest.fn()
+      const stream = pipe(map(toString), take(5))(numbersStream)
+
+      unsafeEach(f, stream)
+
+      expect(f).toHaveBeenCalledTimes(5)
+      expect(f).toHaveBeenNthCalledWith(1, '1')
+      expect(f).toHaveBeenNthCalledWith(2, '2')
+      expect(f).toHaveBeenNthCalledWith(3, '3')
+      expect(f).toHaveBeenNthCalledWith(4, '4')
+      expect(f).toHaveBeenNthCalledWith(5, '5')
+    })
+
+    it('does not throw an error with an unsafe stream', () => {
+      const f = jest.fn()
+      const stream = pipe(map(toString), takeWhile(lt(6)))(numbersStream)
+
+      expect(stream.isSafe).toBe(false)
+      expect(() => {
+        unsafeEach(f, stream)
+      }).not.toThrowError()
+      expect(f).toHaveBeenCalledTimes(5)
+      expect(f).toHaveBeenNthCalledWith(1, '1')
+      expect(f).toHaveBeenNthCalledWith(2, '2')
+      expect(f).toHaveBeenNthCalledWith(3, '3')
+      expect(f).toHaveBeenNthCalledWith(4, '4')
+      expect(f).toHaveBeenNthCalledWith(5, '5')
     })
   })
 

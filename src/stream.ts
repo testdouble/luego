@@ -1,5 +1,5 @@
 import { not } from './function-utils'
-import { MapF, PredicateF, Thunk } from './types'
+import { EffectF, MapF, PredicateF, Thunk } from './types'
 import {
   PossibleInfiniteLoopError,
   UnsafeError,
@@ -57,13 +57,22 @@ export class Stream<T> {
     return new Stream(() => thunk().takeUntil(f), this.isSafe)
   }
 
-  toArray(maxLoopsWithoutValue = DEFAULT_MAX_LOOPS_WITHOUT_VALUE): T[] {
+  each(
+    f: EffectF<T>,
+    maxLoopsWithoutValue = DEFAULT_MAX_LOOPS_WITHOUT_VALUE,
+  ): void {
     if (!this.isSafe) {
       throw new UnsafeError()
     }
 
+    this.unsafeEach(f, maxLoopsWithoutValue)
+  }
+
+  unsafeEach(
+    f: EffectF<T>,
+    maxLoopsWithoutValue = DEFAULT_MAX_LOOPS_WITHOUT_VALUE,
+  ): void {
     let result = this.thunk()
-    const array = []
     let loopsSinceValue = 0
 
     while (!result.isEmpty()) {
@@ -72,7 +81,7 @@ export class Stream<T> {
       }
 
       if (result instanceof ResultValue) {
-        array.push(result.value)
+        f(result.value)
         loopsSinceValue = 0
       } else {
         loopsSinceValue += 1
@@ -80,29 +89,20 @@ export class Stream<T> {
 
       result = (result as Nextable<T>).next.thunk()
     }
+  }
+
+  toArray(maxLoopsWithoutValue = DEFAULT_MAX_LOOPS_WITHOUT_VALUE): T[] {
+    const array: T[] = []
+
+    this.each((value: T) => array.push(value), maxLoopsWithoutValue)
 
     return array
   }
 
   unsafeToArray(maxLoopsWithoutValue = DEFAULT_MAX_LOOPS_WITHOUT_VALUE): T[] {
-    let result = this.thunk()
-    const array = []
-    let loopsSinceValue = 0
+    const array: T[] = []
 
-    while (!result.isEmpty()) {
-      if (loopsSinceValue > maxLoopsWithoutValue) {
-        throw new PossibleInfiniteLoopError()
-      }
-
-      if (result instanceof ResultValue) {
-        array.push(result.value)
-        loopsSinceValue = 0
-      } else {
-        loopsSinceValue += 1
-      }
-
-      result = (result as Nextable<T>).next.thunk()
-    }
+    this.unsafeEach((value: T) => array.push(value), maxLoopsWithoutValue)
 
     return array
   }

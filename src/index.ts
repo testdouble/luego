@@ -14,6 +14,8 @@ export {
   takeWhile,
   takeUntil,
   pipe,
+  each,
+  unsafeEach,
   toArray,
   unsafeToArray,
 } from './stream-functions'

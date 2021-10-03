@@ -7,7 +7,7 @@ import {
   createSafeStream,
   empty,
 } from './stream'
-import { GenerateNextF, MapF, PredicateF } from './types'
+import { EffectF, GenerateNextF, MapF, PredicateF } from './types'
 
 // Constructors
 // ============
@@ -85,6 +85,18 @@ export const pipe = lodashPipe
 
 // Consumers
 // =========
+
+export const each = <T>(
+  f: EffectF<T>,
+  stream: Stream<T>,
+  maxLoopsWithoutValue: number = DEFAULT_MAX_LOOPS_WITHOUT_VALUE,
+): void => stream.each(f, maxLoopsWithoutValue)
+
+export const unsafeEach = <T>(
+  f: EffectF<T>,
+  stream: Stream<T>,
+  maxLoopsWithoutValue: number = DEFAULT_MAX_LOOPS_WITHOUT_VALUE,
+): void => stream.unsafeEach(f, maxLoopsWithoutValue)
 
 export const toArray = <T>(
   stream: Stream<T>,
