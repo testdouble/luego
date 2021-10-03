@@ -1,4 +1,10 @@
 export {
+  UnsafeNumberError,
+  UnsafeError,
+  PossibleInfiniteLoopError,
+} from './errors'
+
+export {
   sequence,
   fromArray,
   map,
@@ -8,8 +14,6 @@ export {
   takeWhile,
   takeUntil,
   pipe,
-  UnsafeNumber,
-  UnsafeError,
-  PossibleInfiniteLoopError,
   toArray,
-} from './stream'
+  unsafeToArray,
+} from './stream-functions'

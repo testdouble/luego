@@ -1,4 +1,17 @@
-import * as Stream from '../src/stream'
+import {
+  UnsafeNumberError,
+  fromArray,
+  keep,
+  map,
+  pipe,
+  reject,
+  sequence,
+  take,
+  takeUntil,
+  takeWhile,
+  toArray,
+  unsafeToArray,
+} from '../src'
 
 const increment = (x: number): number => x + 1
 const double = (x: number): number => x * 2
@@ -6,12 +19,12 @@ const gt = (x: number) => (y: number) => y > x
 const lt = (x: number) => (y: number) => y < x
 const toString = (x: number) => x.toString()
 
-const numbersStream = Stream.sequence(1, increment)
+const numbersStream = sequence(1, increment)
 
 describe('Stream', () => {
   describe('.sequence', () => {
     it('creates an infinite sequence', () => {
-      const result = Stream.toArray(Stream.take(5, numbersStream))
+      const result = toArray(take(5, numbersStream))
 
       expect(result).toEqual([1, 2, 3, 4, 5])
     })
@@ -24,9 +37,9 @@ describe('Stream', () => {
         { length: arrayLength },
         (_, i) => arrayLength - 1 - i,
       )
-      const stream = Stream.fromArray(array)
+      const stream = fromArray(array)
 
-      const result = Stream.toArray(stream)
+      const result = toArray(stream)
 
       expect(result).toEqual(array)
     })
@@ -34,9 +47,9 @@ describe('Stream', () => {
 
   describe('.map', () => {
     it('transforms the values in the stream', () => {
-      const stream = Stream.map(double, numbersStream)
+      const stream = map(double, numbersStream)
 
-      const result = Stream.toArray(Stream.take(5, stream))
+      const result = toArray(take(5, stream))
 
       expect(result).toEqual([2, 4, 6, 8, 10])
     })
@@ -44,9 +57,9 @@ describe('Stream', () => {
 
   describe('.keep', () => {
     it('keeps values that return true for the provided function', () => {
-      const stream = Stream.keep(gt(10), numbersStream)
+      const stream = keep(gt(10), numbersStream)
 
-      const result = Stream.toArray(Stream.take(5, stream))
+      const result = toArray(take(5, stream))
 
       expect(result).toEqual([11, 12, 13, 14, 15])
     })
@@ -54,9 +67,9 @@ describe('Stream', () => {
 
   describe('.reject', () => {
     it('rejects values that return true for the provided function', () => {
-      const stream = Stream.reject(lt(5), numbersStream)
+      const stream = reject(lt(5), numbersStream)
 
-      const result = Stream.toArray(Stream.take(5, stream))
+      const result = toArray(take(5, stream))
 
       expect(result).toEqual([5, 6, 7, 8, 9])
     })
@@ -64,9 +77,9 @@ describe('Stream', () => {
 
   describe('.takeWhile', () => {
     it('takes values while function returns true', () => {
-      const stream = Stream.takeWhile(lt(10), numbersStream)
+      const stream = takeWhile(lt(10), numbersStream)
 
-      const result = Stream.unsafeToArray(stream)
+      const result = unsafeToArray(stream)
 
       expect(result).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
     })
@@ -74,9 +87,9 @@ describe('Stream', () => {
 
   describe('.takeUntil', () => {
     it('takes values until function returns true', () => {
-      const stream = Stream.takeUntil(gt(4), numbersStream)
+      const stream = takeUntil(gt(4), numbersStream)
 
-      const result = Stream.unsafeToArray(stream)
+      const result = unsafeToArray(stream)
 
       expect(result).toEqual([1, 2, 3, 4])
     })
@@ -88,8 +101,8 @@ describe('Stream', () => {
 
       for (const number of unsafeNumbers) {
         expect(() => {
-          Stream.take(number, numbersStream)
-        }).toThrowError(Stream.UnsafeNumber)
+          take(number, numbersStream)
+        }).toThrowError(UnsafeNumberError)
       }
     })
 
@@ -99,7 +112,7 @@ describe('Stream', () => {
 
       for (const number of safeNumbers) {
         expect(() => {
-          Stream.take(number, numbersStream)
+          take(number, numbersStream)
         }).not.toThrowError()
       }
     })
@@ -107,15 +120,15 @@ describe('Stream', () => {
 
   describe('stacking operations', () => {
     it('can stack operations', () => {
-      const stream = Stream.pipe(
-        Stream.map(double),
-        Stream.keep(gt(10)),
-        Stream.reject(gt(20)),
-        Stream.take(2),
-        Stream.map(toString),
+      const stream = pipe(
+        map(double),
+        keep(gt(10)),
+        reject(gt(20)),
+        take(2),
+        map(toString),
       )(numbersStream)
 
-      const result = Stream.toArray(stream)
+      const result = toArray(stream)
 
       expect(result).toEqual(['12', '14'])
     })
