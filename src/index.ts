@@ -8,6 +8,7 @@ export {
   sequence,
   fromArray,
   from,
+  fromGenerator,
   map,
   keep,
   reject,

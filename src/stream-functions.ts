@@ -42,6 +42,23 @@ export const fromArray = <T>(array: T[]): Stream<T> => {
 export const from = <T>(f: Thunk<T>): Stream<T> =>
   new Stream(() => new ResultValue(f(), from(f)))
 
+export const fromGenerator = <T>(
+  f: Thunk<Generator<T, T | void>>,
+): Stream<T> => {
+  const iterator = f()
+
+  const fromGeneratorHelper = (): Stream<T> =>
+    new Stream<T>(() => {
+      const { value } = iterator.next()
+
+      return typeof value === 'undefined'
+        ? empty
+        : new ResultValue(value, fromGeneratorHelper())
+    })
+
+  return fromGeneratorHelper()
+}
+
 // Operations
 // ==========
 

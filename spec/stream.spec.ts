@@ -4,6 +4,7 @@ import {
   each,
   fromArray,
   from,
+  fromGenerator,
   keep,
   map,
   pipe,
@@ -60,6 +61,23 @@ describe('Stream', () => {
       const result = toArray(take(values.length, stream))
 
       expect(result).toEqual(expected)
+    });
+  });
+
+  describe('.fromGenerator', () => {
+    it('creates a stream from a generating function', () => {
+      function* generator() {
+        yield 'foo'
+        yield 'bar'
+        yield 'baz'
+        yield 'quux'
+      }
+
+      const stream = fromGenerator(generator)
+
+      const result = toArray(take(4, stream))
+
+      expect(result).toEqual(['foo', 'bar', 'baz', 'quux'])
     });
   });
 
