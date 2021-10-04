@@ -7,6 +7,7 @@ export {
 export {
   sequence,
   fromArray,
+  from,
   map,
   keep,
   reject,

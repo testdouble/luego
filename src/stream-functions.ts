@@ -7,7 +7,7 @@ import {
   createSafeStream,
   empty,
 } from './stream'
-import { EffectF, GenerateNextF, MapF, PredicateF } from './types'
+import { EffectF, GenerateNextF, MapF, PredicateF, Thunk } from './types'
 
 // Constructors
 // ============
@@ -38,6 +38,9 @@ export const fromArray = <T>(array: T[]): Stream<T> => {
 
   return fromArrayHelper(0)
 }
+
+export const from = <T>(f: Thunk<T>): Stream<T> =>
+  new Stream(() => new ResultValue(f(), from(f)))
 
 // Operations
 // ==========

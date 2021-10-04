@@ -3,6 +3,7 @@ import {
   UnsafeNumberError,
   each,
   fromArray,
+  from,
   keep,
   map,
   pipe,
@@ -47,6 +48,20 @@ describe('Stream', () => {
       expect(result).toEqual(array)
     })
   })
+
+  describe('.from', () => {
+    it('creates a stream from a generating function', () => {
+      const values = ['foo', 'bar', 'baz', 'quux']
+      const expected = [...values]
+      const f = () => values.shift()
+
+      const stream = from(f)
+
+      const result = toArray(take(values.length, stream))
+
+      expect(result).toEqual(expected)
+    });
+  });
 
   describe('.map', () => {
     it('transforms the values in the stream', () => {
