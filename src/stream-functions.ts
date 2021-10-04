@@ -30,7 +30,7 @@ export const fromArray = <T>(array: T[]): Stream<T> => {
   const { length } = array
 
   const fromArrayHelper = (index: number): Stream<T> =>
-    createSafeStream(() =>
+    createSafeStream<T>(() =>
       index >= length
         ? empty
         : new ResultValue(array[index], fromArrayHelper(index + 1)),

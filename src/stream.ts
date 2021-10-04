@@ -1,5 +1,5 @@
 import { not } from './function-utils'
-import { EffectF, MapF, PredicateF, Thunk } from './types'
+import { EffectF, IResult, MapF, PredicateF, Thunk } from './types'
 import {
   PossibleInfiniteLoopError,
   UnsafeError,
@@ -75,7 +75,7 @@ export class Stream<T> {
     let result = this.thunk()
     let loopsSinceValue = 0
 
-    while (!result.isEmpty()) {
+    while (!(result instanceof Empty)) {
       if (loopsSinceValue > maxLoopsWithoutValue) {
         throw new PossibleInfiniteLoopError()
       }
@@ -87,7 +87,7 @@ export class Stream<T> {
         loopsSinceValue += 1
       }
 
-      result = (result as Nextable<T>).next.thunk()
+      result = result.next.thunk()
     }
   }
 
@@ -108,19 +108,9 @@ export class Stream<T> {
   }
 }
 
-interface Result<T> {
-  map<U>(f: MapF<T, U>): Result<U>
-  keep(f: PredicateF<T>): Result<T>
-  reject(f: PredicateF<T>): Result<T>
-  take(n: number): Result<T>
-  takeWhile(f: PredicateF<T>): Result<T>
-  takeUntil(f: PredicateF<T>): Result<T>
-  isEmpty(): boolean
-}
+type Result<T> = ResultValue<T> | Filtered<T> | Empty<T>
 
-type Nextable<T> = ResultValue<T> | Filtered<T>
-
-export class ResultValue<T> implements Result<T> {
+export class ResultValue<T> implements IResult<T> {
   value: T
   next: Stream<T>
 
@@ -156,13 +146,9 @@ export class ResultValue<T> implements Result<T> {
   takeUntil(f: PredicateF<T>): Result<T> {
     return this.takeWhile(not(f))
   }
-
-  isEmpty(): boolean {
-    return false
-  }
 }
 
-class Filtered<T> implements Result<T> {
+class Filtered<T> implements IResult<T> {
   next: Stream<T>
 
   constructor(next: Stream<T>) {
@@ -173,11 +159,11 @@ class Filtered<T> implements Result<T> {
     return new Filtered(this.next.map(f))
   }
 
-  keep(f: PredicateF<T>): Result<T> {
+  keep(f: PredicateF<T>): Filtered<T> {
     return new Filtered(this.next.keep(f))
   }
 
-  reject(f: PredicateF<T>): Result<T> {
+  reject(f: PredicateF<T>): Filtered<T> {
     return this.keep(not(f))
   }
 
@@ -189,16 +175,12 @@ class Filtered<T> implements Result<T> {
     return new Filtered(this.next.takeWhile(f))
   }
 
-  takeUntil(f: PredicateF<T>): Result<T> {
+  takeUntil(f: PredicateF<T>): Filtered<T> {
     return this.takeWhile(not(f))
-  }
-
-  isEmpty(): boolean {
-    return false
   }
 }
 
-class Empty<T> implements Result<T> {
+class Empty<T> implements IResult<T> {
   map<U>(): Empty<U> {
     return this
   }
@@ -221,10 +203,6 @@ class Empty<T> implements Result<T> {
 
   takeUntil(): Empty<T> {
     return this
-  }
-
-  isEmpty(): boolean {
-    return true
   }
 }
 
