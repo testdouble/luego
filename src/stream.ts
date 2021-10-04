@@ -1,5 +1,5 @@
 import { not } from './function-utils'
-import { EffectF, MapF, PredicateF, Thunk } from './types'
+import { IResult, EffectF, MapF, PredicateF, Thunk } from './types'
 import {
   PossibleInfiniteLoopError,
   UnsafeError,
@@ -8,17 +8,17 @@ import {
 
 export const DEFAULT_MAX_LOOPS_WITHOUT_VALUE = 10000
 
-export function createSafeStream<T>(thunk: Thunk<Result<T>>): Stream<T> {
+export function createSafeStream<T>(thunk: Thunk<IResult<T>>): Stream<T> {
   const stream = new Stream(thunk)
   stream.isSafe = true
   return stream
 }
 
 export class Stream<T> {
-  thunk: Thunk<Result<T>>
+  thunk: Thunk<IResult<T>>
   isSafe: boolean
 
-  constructor(thunk: Thunk<Result<T>>, isSafe = false) {
+  constructor(thunk: Thunk<IResult<T>>, isSafe = false) {
     this.thunk = thunk
     this.isSafe = isSafe
   }
@@ -108,19 +108,9 @@ export class Stream<T> {
   }
 }
 
-interface Result<T> {
-  map<U>(f: MapF<T, U>): Result<U>
-  keep(f: PredicateF<T>): Result<T>
-  reject(f: PredicateF<T>): Result<T>
-  take(n: number): Result<T>
-  takeWhile(f: PredicateF<T>): Result<T>
-  takeUntil(f: PredicateF<T>): Result<T>
-  isEmpty(): boolean
-}
-
 type Nextable<T> = ResultValue<T> | Filtered<T>
 
-export class ResultValue<T> implements Result<T> {
+export class ResultValue<T> implements IResult<T> {
   value: T
   next: Stream<T>
 
@@ -133,27 +123,27 @@ export class ResultValue<T> implements Result<T> {
     return new ResultValue(f(this.value), this.next.map(f))
   }
 
-  keep(f: PredicateF<T>): Result<T> {
+  keep(f: PredicateF<T>): IResult<T> {
     return f(this.value)
       ? new ResultValue(this.value, this.next.keep(f))
       : new Filtered(this.next.keep(f))
   }
 
-  reject(f: PredicateF<T>): Result<T> {
+  reject(f: PredicateF<T>): IResult<T> {
     return this.keep(not(f))
   }
 
-  take(n: number): Result<T> {
+  take(n: number): IResult<T> {
     return n <= 0 ? empty : new ResultValue(this.value, this.next.take(n - 1))
   }
 
-  takeWhile(f: PredicateF<T>): Result<T> {
+  takeWhile(f: PredicateF<T>): IResult<T> {
     return f(this.value)
       ? new ResultValue(this.value, this.next.takeWhile(f))
       : empty
   }
 
-  takeUntil(f: PredicateF<T>): Result<T> {
+  takeUntil(f: PredicateF<T>): IResult<T> {
     return this.takeWhile(not(f))
   }
 
@@ -162,7 +152,7 @@ export class ResultValue<T> implements Result<T> {
   }
 }
 
-class Filtered<T> implements Result<T> {
+class Filtered<T> implements IResult<T> {
   next: Stream<T>
 
   constructor(next: Stream<T>) {
@@ -173,15 +163,15 @@ class Filtered<T> implements Result<T> {
     return new Filtered(this.next.map(f))
   }
 
-  keep(f: PredicateF<T>): Result<T> {
+  keep(f: PredicateF<T>): IResult<T> {
     return new Filtered(this.next.keep(f))
   }
 
-  reject(f: PredicateF<T>): Result<T> {
+  reject(f: PredicateF<T>): IResult<T> {
     return this.keep(not(f))
   }
 
-  take(n: number): Result<T> {
+  take(n: number): IResult<T> {
     return n <= 0 ? empty : new Filtered(this.next.take(n))
   }
 
@@ -189,7 +179,7 @@ class Filtered<T> implements Result<T> {
     return new Filtered(this.next.takeWhile(f))
   }
 
-  takeUntil(f: PredicateF<T>): Result<T> {
+  takeUntil(f: PredicateF<T>): IResult<T> {
     return this.takeWhile(not(f))
   }
 
@@ -198,7 +188,7 @@ class Filtered<T> implements Result<T> {
   }
 }
 
-class Empty<T> implements Result<T> {
+class Empty<T> implements IResult<T> {
   map<U>(): Empty<U> {
     return this
   }

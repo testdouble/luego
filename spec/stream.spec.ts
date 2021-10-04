@@ -5,6 +5,7 @@ import {
   fromArray,
   keep,
   map,
+  on,
   pipe,
   reject,
   sequence,
@@ -16,16 +17,19 @@ import {
   unsafeEach,
   unsafeToArray,
 } from '../src'
+import { Subscriber } from '../src/stream-functions'
 
 const increment = (x: number): number => x + 1
 const double = (x: number): number => x * 2
 const gt = (x: number) => (y: number) => y > x
 const lt = (x: number) => (y: number) => y < x
 const toString = (x: number) => x.toString()
+const toUpper = (s: string) => s.toUpperCase()
 
 const numbersStream = sequence(1, increment)
 
-const sleep = time => new Promise((resolve) => setTimeout(resolve, time))
+const sleep = (time: number) =>
+  new Promise((resolve) => setTimeout(resolve, time))
 
 describe('Stream', () => {
   describe('.sequence', () => {
@@ -235,6 +239,29 @@ describe('Stream', () => {
     //   expect(f).toHaveBeenNthCalledWith(2, 'bar')
     //   expect(f).toHaveBeenNthCalledWith(3, 'baz')
     // })
+  })
+
+  describe('.on', () => {
+    it('creates an async stream from async data sources', async () => {
+      const f = jest.fn()
+
+      const stream = on(async (subscriber: Subscriber<string>) => {
+        subscriber.next('foo')
+        await sleep(10)
+        subscriber.next('bar')
+        await sleep(10)
+        subscriber.next('baz')
+      })
+        .map(toUpper)
+        .take(3)
+
+      await stream.each(f)
+
+      expect(f).toHaveBeenCalledTimes(3)
+      expect(f).toHaveBeenNthCalledWith(1, 'FOO')
+      expect(f).toHaveBeenNthCalledWith(2, 'BAR')
+      expect(f).toHaveBeenNthCalledWith(3, 'BAZ')
+    })
   })
 
   describe('stacking operations', () => {
