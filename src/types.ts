@@ -12,3 +12,11 @@ export interface IResult<T> {
   takeWhile(f: PredicateF<T>): IResult<T>
   takeUntil(f: PredicateF<T>): IResult<T>
 }
+
+export interface IResult2<T> {
+  map<U>(f: MapF<T, U>): IResult2<U>
+  // keep(f: PredicateF<T>): IResult2<T>
+  // reject(f: PredicateF<T>): IResult2<T>
+  // takeWhile(f: PredicateF<T>): IResult2<T>
+  // takeUntil(f: PredicateF<T>): IResult2<T>
+}
