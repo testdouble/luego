@@ -1,4 +1,4 @@
-import { PredicateF } from './types'
+import type { PredicateF } from './types'
 
 export const not =
   <T>(f: PredicateF<T>): PredicateF<T> =>

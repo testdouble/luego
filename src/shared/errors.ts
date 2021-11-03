@@ -1,13 +1,13 @@
 export class UnsafeNumberError extends Error {
   constructor(n: number) {
-    super(`Please provide a finite integer for \`take\`: ${n}.`)
+    super(`Please provide a finite integer that's > 0 for \`take\`: ${n}.`)
   }
 }
 
 export class UnsafeError extends Error {
   constructor() {
     super(
-      'Stream unsafe and could produce an infinite loop. Please limit your results with `take(n)`.',
+      'Stream unsafe and could produce an infinite loop. Please limit your results with `take(n)` where n > 0.',
     )
   }
 }

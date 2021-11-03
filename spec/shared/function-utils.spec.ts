@@ -1,4 +1,4 @@
-import { not } from '../src/function-utils'
+import { not } from 'src/shared/function-utils'
 
 describe('function-utils', () => {
   describe('not', () => {
